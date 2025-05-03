@@ -24,7 +24,7 @@ const Navbar = () => {
   return (
     <nav className="backdrop-blur-md bg-white/10 shadow-lg rounded-xl mx-auto mt-6 w-11/12 md:w-3/4 p-6 flex justify-between items-center">
       <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-300 via-yellow-300 to-blue-300 bg-clip-text text-transparent animate-pulse">
-        📚 Library Management
+        📚 BookVerse
       </h1>
 
       <div className="flex flex-wrap gap-8 text-lg font-medium">

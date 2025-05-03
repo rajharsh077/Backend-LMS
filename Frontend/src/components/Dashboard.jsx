@@ -107,7 +107,7 @@ const AdminDashboard = () => {
 
       <div className="mt-6 flex gap-4">
         <a
-          href="/books"
+          href="/admin/dashboard/Allbooks"
           className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
         >
           View All Books

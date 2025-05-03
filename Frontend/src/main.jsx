@@ -12,6 +12,10 @@ import SignUp from './components/Signup.jsx';
 import AdminLogin from './components/AdminLogin.jsx';
 import Dashboard from './components/Dashboard.jsx';
 import AllBooks from './components/AllBooks.jsx';
+import Login from './components/Login.jsx';
+import Params from './components/Params.jsx';
+import UserProfile from './components/UserProfile.jsx';
+import Users from './components/Users.jsx';
 
 const router = createBrowserRouter([
   {
@@ -37,9 +41,27 @@ const router = createBrowserRouter([
     element: <Dashboard />,
   },
   {
+    path: "/admin/dashboard/users",
+    element: <Users />,
+  },
+  {
     path: "/admin/dashboard/Allbooks",
     element: <AllBooks />,
   },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/:name",
+    element: <Params />,
+  },
+
+  {
+    path: "/:name/profile",
+    element: <UserProfile />,
+  },
+
 
 ]);
 
