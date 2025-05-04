@@ -39,10 +39,12 @@ const Home = () => {
       </div>
 
       {/* Features Section */}
-      <section className="bg-cover bg-center text-white py-16 px-6 sm:px-12 md:px-20 relative"
+      <section
+        className="bg-cover bg-center text-white py-16 px-6 sm:px-12 md:px-20 relative"
         style={{
           backgroundImage: `url('https://www.pixelstalk.net/wp-content/uploads/2016/08/Old-Library-Wallpaper.jpg')`,
-        }}>
+        }}
+      >
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80 z-0"></div>
 
@@ -101,6 +103,65 @@ const Home = () => {
           </ul>
         </div>
       </section>
+
+      {/* Reader Reviews Section */}
+      {/* Reader Reviews Section */}
+<section className="bg-gray-900 text-white py-16 px-6 sm:px-12 md:px-20">
+  <h3 className="text-3xl font-bold text-center mb-12 text-yellow-300">
+    Reader Reviews
+  </h3>
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 justify-center items-center">
+    {[
+      {
+        name: "Aarav S.",
+        rating: 5,
+        comment: "Amazing collection! Found books I couldn’t find elsewhere. Highly recommend the library to everyone who loves to read and explore different genres.",
+      },
+      {
+        name: "Meera K.",
+        rating: 4,
+        comment: "Smooth lending process and helpful features! A few more book categories would make it even better.",
+      },
+      {
+        name: "Rohit B.",
+        rating: 5,
+        comment: "Love the UI and fast access to all my favorite genres. The staff is also very friendly and knowledgeable.",
+      },
+      {
+        name: "Isha T.",
+        rating: 4,
+        comment: "Would love a mobile app too! But overall, great job. The web experience is good, though a bit slow during peak hours.",
+      },
+      {
+        name: "Devansh R.",
+        rating: 5,
+        comment: "The recommendations are on point — highly impressed! The variety of genres and authors is fantastic.",
+      },
+    ].slice(0, 4).map((review, index) => (
+      <div
+        key={index}
+        className="bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 w-full aspect-w-1 aspect-h-1 flex flex-col justify-between"
+      >
+        <div>
+          <h4 className="text-lg font-semibold text-yellow-300 mb-1">{review.name}</h4>
+          <div className="flex items-center mb-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <span
+                key={i}
+                className={`text-yellow-400 text-sm ${i < review.rating ? '' : 'opacity-30'}`}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+          <p className="text-gray-300 text-sm line-clamp-3">{review.comment}</p>
+        </div>
+        <p className="text-xs text-gray-500 mt-2 text-right">— Reader</p>
+      </div>
+    ))}
+  </div>
+</section>
+
 
       {/* Contact Us Section */}
       <section className="bg-purple-800 text-white py-16 px-6 sm:px-12 md:px-20">

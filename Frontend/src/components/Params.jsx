@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { toast, ToastContainer } from 'react-toastify';  // Import Toastify and ToastContainer
+import 'react-toastify/dist/ReactToastify.css';  // Import Toastify styles
 
 const Params = () => {
   const { name } = useParams();
   const [books, setBooks] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -25,14 +28,34 @@ const Params = () => {
     if (!confirmLend) return;
 
     try {
-      const res = await axios.post(`http://localhost:3000/lend/${name}`, {
-        bookId: bookId,
-      });
+      const res = await axios.post(`http://localhost:3000/lend/${name}`, { bookId });
       alert(res.data.message);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to lend book");
     }
   };
+
+  const handleWishlist = async (book) => {
+    // Add book to wishlist if it's not already in the list
+    if (!wishlist.some((b) => b.id === book.id)) {
+      try {
+        // Update the wishlist in the backend
+        await axios.post(`http://localhost:3000/${name}/wishlist`, { book });
+  
+        // Update the wishlist state locally
+        setWishlist((prevWishlist) => [...prevWishlist, book]);
+  
+        // Show success toast
+        toast.success(`${book.title} added to Wishlist!`);
+      } catch (error) {
+        console.error("Error adding to wishlist:", error);
+        toast.error("Failed to add to wishlist.");
+      }
+    } else {
+      toast.info(`${book.title} is already in your Wishlist.`);
+    }
+  };
+  
 
   const filteredBooks = books.filter((book) =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -42,11 +65,17 @@ const Params = () => {
     <>
       {/* Navbar */}
       <nav className="bg-purple-700 text-white p-4 flex justify-between items-center shadow-md">
-        <h1 className="text-2xl font-semibold">📚 Welcome to Our Library</h1>
-        <a href={`/${name}/profile`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold">
-          Profile
-        </a>
-      </nav>
+  <h1 className="text-2xl font-semibold">📚 Welcome to Our Library</h1>
+  <div>
+    <a href={`/${name}/profile`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold mr-4">
+      Profile
+    </a>
+    <a href={`/${name}/wishlist`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold">
+      Wishlist
+    </a>
+  </div>
+</nav>
+
 
       {/* Greeting */}
       <div className="text-center mt-6 text-xl font-semibold text-gray-800">
@@ -72,12 +101,20 @@ const Params = () => {
               <img src={book.image || 'https://via.placeholder.com/150x200'} alt={book.title} className="h-48 w-full object-cover rounded" />
               <h3 className="mt-2 font-bold text-lg">{book.title}</h3>
               <p className="text-gray-600">by {book.author}</p>
-              <button
-                onClick={() => handleLend(book.id)}
-                className="mt-3 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
-              >
-                Lend
-              </button>
+              <div className="flex justify-between mt-3">
+                <button
+                  onClick={() => handleLend(book.id)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded"
+                >
+                  Lend
+                </button>
+                <button
+                  onClick={() => handleWishlist(book)}
+                  className="bg-orange-500 text-white px-4 py-2 rounded"
+                >
+                  Add to Wishlist ❤️
+                </button>
+              </div>
             </div>
           ))
         ) : (
@@ -111,6 +148,9 @@ const Params = () => {
           </div>
         </div>
       </footer>
+
+      {/* Toastify Container */}
+      <ToastContainer /> {/* Correctly use ToastContainer component */}
     </>
   );
 };

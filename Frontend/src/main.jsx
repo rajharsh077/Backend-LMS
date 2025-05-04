@@ -16,6 +16,7 @@ import Login from './components/Login.jsx';
 import Params from './components/Params.jsx';
 import UserProfile from './components/UserProfile.jsx';
 import Users from './components/Users.jsx';
+import WishList from './components/WishList.jsx';
 
 const router = createBrowserRouter([
   {
@@ -61,6 +62,12 @@ const router = createBrowserRouter([
     path: "/:name/profile",
     element: <UserProfile />,
   },
+  {
+    path: "/:name/wishlist",
+    element: <WishList />,
+  },
+
+
 
 
 ]);
