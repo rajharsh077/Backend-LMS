@@ -24,6 +24,7 @@ const Users = () => {
         } else {
           setError("Received data is not in the expected format.");
         }
+        console.log(response.data);
       } catch (err) {
         console.error("Failed to fetch users:", err);
         setError("Failed to load users.");
@@ -60,7 +61,7 @@ const Users = () => {
                       <li key={book.id}>
                         <span className="font-medium">{book.title}</span>
                         <div className="ml-4 text-xs text-gray-500">
-                          Lent on: {new Date(book.lentDate).toLocaleDateString()}<br />
+                        Lent on: {new Date(book.lentDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })}
                           Days Since Lent: {diffDays} days<br />
                           Fine: <span className={fine > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>₹{fine}</span>
                         </div>
