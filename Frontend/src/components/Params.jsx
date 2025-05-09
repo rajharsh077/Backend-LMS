@@ -1,15 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';  // Import Toastify and ToastContainer
-import 'react-toastify/dist/ReactToastify.css';  // Import Toastify styles
+import {jwtDecode} from 'jwt-decode';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Params = () => {
   const { name } = useParams();
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // ✅ Token Expiry Check
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Please login first.");
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+
+      if (decoded.exp < currentTime) {
+        toast.info("Session expired. Please log in again.");
+        localStorage.removeItem('token');
+        navigate('/login');
+      }
+    } catch (err) {
+      console.error("Invalid token", err);
+      toast.error("Invalid token.");
+      localStorage.removeItem('token');
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // ✅ Fetch books
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -19,44 +48,72 @@ const Params = () => {
         console.error("Failed to fetch books", err);
       }
     };
-
     fetchBooks();
   }, []);
 
+  // ✅ Lend handler
   const handleLend = async (bookId) => {
     const confirmLend = window.confirm("Do you want to lend this book?");
     if (!confirmLend) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("You need to log in first!");
+      return;
+    }
+
     try {
-      const res = await axios.post(`http://localhost:3000/lend/${name}`, { bookId });
+      const res = await axios.post(
+        'http://localhost:3000/lend',
+        { bookId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       alert(res.data.message);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to lend book");
     }
   };
 
+  // ✅ Wishlist handler
   const handleWishlist = async (book) => {
-    // Add book to wishlist if it's not already in the list
     if (!wishlist.some((b) => b.id === book.id)) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("No token found. Please log in.");
+        return;
+      }
+
       try {
-        // Update the wishlist in the backend
-        await axios.post(`http://localhost:3000/${name}/wishlist`, { book });
-  
-        // Update the wishlist state locally
+        await axios.post(
+          `http://localhost:3000/wishlist`,
+          { book },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            }
+          }
+        );
+
         setWishlist((prevWishlist) => [...prevWishlist, book]);
-  
-        // Show success toast
         toast.success(`${book.title} added to Wishlist!`);
       } catch (error) {
         console.error("Error adding to wishlist:", error);
-        toast.error("Failed to add to wishlist.");
+        if (error.response && error.response.status === 401) {
+          toast.error("Unauthorized. Please log in again.");
+        } else {
+          toast.error("Failed to add to wishlist.");
+        }
       }
     } else {
       toast.info(`${book.title} is already in your Wishlist.`);
     }
   };
-  
 
+  // ✅ Search filter
   const filteredBooks = books.filter((book) =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -65,17 +122,19 @@ const Params = () => {
     <>
       {/* Navbar */}
       <nav className="bg-purple-700 text-white p-4 flex justify-between items-center shadow-md">
-  <h1 className="text-2xl font-semibold">📚 Welcome to Our Library</h1>
-  <div>
-    <a href={`/${name}/profile`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold mr-4">
-      Profile
+        <h1 className="text-2xl font-semibold">📚 Welcome to Our Library</h1>
+        <div>
+        <a href="/" className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold mr-4">
+      Home
     </a>
-    <a href={`/${name}/wishlist`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold">
-      Wishlist
-    </a>
-  </div>
-</nav>
-
+          <a href={`/${name}/profile`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold mr-4">
+            Profile
+          </a>
+          <a href={`/${name}/wishlist`} className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold">
+            Wishlist
+          </a>
+        </div>
+      </nav>
 
       {/* Greeting */}
       <div className="text-center mt-6 text-xl font-semibold text-gray-800">
@@ -149,8 +208,7 @@ const Params = () => {
         </div>
       </footer>
 
-      {/* Toastify Container */}
-      <ToastContainer /> {/* Correctly use ToastContainer component */}
+      <ToastContainer />
     </>
   );
 };

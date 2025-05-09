@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import {jwtDecode} from 'jwt-decode'; // Make sure to install this using `npm install jwt-decode`
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const navigate = useNavigate();
+
+  // ✅ Auto-redirect if token is valid
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token); // { name, email, exp, ... }
+        const now = Date.now() / 1000;
+        if (decoded.exp > now) {
+          navigate(`/${decoded.name}`);
+        } else {
+          localStorage.removeItem("token"); // token expired
+        }
+      } catch (err) {
+        localStorage.removeItem("token"); // invalid token
+        console.error("Token decode error:", err);
+      }
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,8 +38,9 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:3000/login', formData);
+      localStorage.setItem("token", res.data.token);
       alert(res.data.message);
-      navigate(`/${res.data.name}`); 
+      navigate(`/${res.data.name}`);
     } catch (err) {
       alert(err.response?.data?.message || "Login failed");
     }

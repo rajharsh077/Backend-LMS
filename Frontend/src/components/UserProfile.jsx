@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,15 +9,28 @@ const UserProfile = () => {
   const [lentBooks, setLentBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLentBooks = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/lent/${name}`);
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          console.log("No token found. Redirecting to login.");
+          navigate('/login');
+          return;
+        }
+
+        const res = await axios.get('http://localhost:3000/lent', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
         const books = res.data;
         console.log(books);
 
-        // Reminder toast for books due in 3 or fewer days
         books.forEach(book => {
           if (book.daysLent >= 27 && book.daysLent < 30) {
             const daysLeft = 30 - book.daysLent;
@@ -49,8 +62,18 @@ const UserProfile = () => {
     const confirmReturn = window.confirm("Are you sure you want to return this book?");
     if (!confirmReturn) return;
 
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      alert("You must be logged in to return a book.");
+      return;
+    }
+
     try {
-      const res = await axios.delete(`http://localhost:3000/return/${name}`, {
+      const res = await axios.delete("http://localhost:3000/return", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         data: { bookId }
       });
       toast.success(res.data.message || "Book returned successfully!", {
@@ -61,7 +84,7 @@ const UserProfile = () => {
       setLentBooks(prev => prev.filter(book => book.id !== bookId));
     } catch (err) {
       console.error("Failed to return book", err);
-      toast.error("Error returning book", {
+      toast.error(err.response?.data?.message || "Error returning book", {
         position: "top-right",
         autoClose: 5000,
         theme: "colored",
@@ -71,8 +94,12 @@ const UserProfile = () => {
 
   const handlePay = async (bookId) => {
     try {
-      // Step 1: Pay fine
-      const res = await axios.patch(`http://localhost:3000/pay-fine/${name}`, { bookId });
+      const token = localStorage.getItem("token");
+
+      const res = await axios.patch("http://localhost:3000/pay-fine", 
+        { bookId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (res.data.success) {
         toast.success(`✅ Fine for "${res.data.bookTitle}" paid! Returning book...`, {
@@ -81,9 +108,9 @@ const UserProfile = () => {
           theme: "colored",
         });
 
-        // Step 2: Return book
-        const returnRes = await axios.delete(`http://localhost:3000/return/${name}`, {
-          data: { bookId }
+        const returnRes = await axios.delete("http://localhost:3000/return", {
+          headers: { Authorization: `Bearer ${token}` },
+          data: { bookId },
         });
 
         toast.success(returnRes.data.message || "Book returned successfully!", {
@@ -92,7 +119,6 @@ const UserProfile = () => {
           theme: "colored",
         });
 
-        // Step 3: Update UI
         setLentBooks(prev => prev.filter(book => book.id !== bookId));
       } else {
         toast.error("❌ Error paying fine.", {
@@ -115,6 +141,11 @@ const UserProfile = () => {
     alert(`Title: ${book.title}\nAuthor: ${book.author}\nDays Lent: ${book.daysLent}\nFine: ₹${book.fine}`);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token'); // Remove token from localStorage
+    navigate('/'); // Redirect to the home page or login page
+  };
+
   if (loading) return <p>Loading your lent books...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
 
@@ -122,14 +153,24 @@ const UserProfile = () => {
     <>
       {/* Navbar */}
       <nav className="bg-purple-700 text-white p-4 flex justify-between items-center shadow-md">
-        <h1 className="text-2xl font-semibold">📚 Your Lent Books</h1>
-        <a
-          href={`/${name}`}
-          className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold"
-        >
-          Back
-        </a>
-      </nav>
+  <h1 className="text-2xl font-semibold">📚 Your Lent Books</h1>
+  
+  <div className="flex space-x-4">
+    <a
+      href={`/${name}`}
+      className="bg-white text-purple-700 px-4 py-2 rounded-lg font-semibold"
+    >
+      Back
+    </a>
+    <button
+      onClick={handleLogout}
+      className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold"
+    >
+      Logout
+    </button>
+  </div>
+</nav>
+
 
       {/* Greeting */}
       <div className="text-center mt-6 text-xl font-semibold">

@@ -26,6 +26,8 @@ const SignUp = () => {
     try {
       const response = await axios.post('http://localhost:3000/signup', formData);
       console.log('Signup successful', response.data);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("name", response.data.user.name);
       alert('Signup successful!');
       navigate("/");
     } catch (error) {

@@ -9,11 +9,18 @@ const Users = () => {
   // Define the calculateFine function
   const calculateFine = (lentDate) => {
     const lent = new Date(lentDate);
-    const now = new Date();
-    const diffDays = Math.floor((now - lent) / (1000 * 60 * 60 * 24));
-    const fine = diffDays > 30 ? (diffDays - 30) * 2 : 0; // ₹2 per day after 30 days
+    const today = new Date();
+  
+    // Normalize both dates to ignore the time part
+    const lentOnly = new Date(lent.getFullYear(), lent.getMonth(), lent.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  
+    const diffDays = Math.floor((todayOnly - lentOnly) / (1000 * 60 * 60 * 24));
+    const fine = diffDays > 30 ? (diffDays - 30) * 2 : 0;
+  
     return { diffDays, fine };
   };
+  
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -24,7 +31,7 @@ const Users = () => {
         } else {
           setError("Received data is not in the expected format.");
         }
-        console.log(response.data);
+        // console.log(response.data);
       } catch (err) {
         console.error("Failed to fetch users:", err);
         setError("Failed to load users.");
