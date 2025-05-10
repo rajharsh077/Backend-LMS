@@ -17,6 +17,7 @@ import Params from './components/Params.jsx';
 import UserProfile from './components/UserProfile.jsx';
 import Users from './components/Users.jsx';
 import WishList from './components/WishList.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 const router = createBrowserRouter([
   {
@@ -39,7 +40,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin/dashboard",
-    element: <Dashboard />,
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/dashboard/users",

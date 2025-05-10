@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
+
 
   // Define the calculateFine function
   const calculateFine = (lentDate) => {
@@ -24,24 +28,34 @@ const Users = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      try {
-        const response = await axios.get("http://localhost:3000/admin/dashboard/users");
-        if (Array.isArray(response.data)) {
-          setUsers(response.data);
-        } else {
-          setError("Received data is not in the expected format.");
+  try {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+          // alert('You are not authorized. Please log in.');
+          navigate('/admin');  // Redirect to admin login page
+          return;
         }
-        // console.log(response.data);
-      } catch (err) {
-        console.error("Failed to fetch users:", err);
-        setError("Failed to load users.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    const response = await axios.get("http://localhost:3000/admin/dashboard/users", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (Array.isArray(response.data)) {
+      setUsers(response.data);
+    } else {
+      setError("Received data is not in the expected format.");
+    }
+  } catch (err) {
+    console.error("Failed to fetch users:", err);
+    setError("Failed to load users.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
     fetchUsers();
-  }, []);
+  }, [navigate]);
 
   if (loading) return <p className="p-4">Loading users...</p>;
   if (error) return <p className="p-4 text-red-500">{error}</p>;

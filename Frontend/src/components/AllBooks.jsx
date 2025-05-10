@@ -1,33 +1,66 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AllBooks = () => {
   const [books, setBooks] = useState([]);
-
+  const [loading, setLoading] = useState(true); // New loading state
+  const navigate = useNavigate();
+  
   // Fetch books when the component mounts
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/admin/dashboard/Allbooks');
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+          navigate('/admin');  // Redirect to admin login page
+          return;
+        }
+
+        const response = await axios.get('http://localhost:3000/admin/dashboard/Allbooks', {
+          headers: {
+            Authorization: `Bearer ${token}`  // Send the token in the Authorization header
+          }
+        });
         setBooks(response.data);
       } catch (error) {
         console.error('Error fetching books:', error);
+      } finally {
+        setLoading(false);  // Stop loading once data is fetched
       }
     };
 
     fetchBooks();
-  }, []);
+  }, [navigate]);
 
   // Handle delete operation for a book
   const handleDelete = async (id) => {
+    const token = localStorage.getItem('adminToken');
+
+    if (!token) {
+      // alert('No token found, please login first.');
+      navigate('/admin');
+      return;
+    }
+
     try {
-      await axios.delete(`http://localhost:3000/admin/delete/book/${id}`);
+      await axios.delete(`http://localhost:3000/admin/delete/book/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,  // Include the token in the request
+        }
+      });
+
+      // Remove the book from the state if deletion is successful
       setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id)); // Remove book from state
     } catch (error) {
       console.error('Error deleting book:', error);
       alert('Failed to delete the book.');
     }
   };
+
+  if (loading) {
+    return <div className="text-center">Loading books...</div>;  // Show loading indicator
+  }
 
   return (
     <div className="bg-gray-100 p-8 min-h-screen">

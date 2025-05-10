@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    // Check if there's an existing token in localStorage, if so redirect to the dashboard
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      navigate('/admin/dashboard'); // Redirect if already logged in
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -15,6 +23,10 @@ const AdminLogin = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:3000/admin/dashboard', formData);
+       const { token } = res.data;
+    
+    // Save the token in localStorage after a successful login
+      localStorage.setItem('adminToken', token);
       console.log('Login success:', res.data);
       navigate('/admin/dashboard'); // or wherever the dashboard is
     } catch (error) {
